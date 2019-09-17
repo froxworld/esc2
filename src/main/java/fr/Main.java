@@ -10,7 +10,9 @@ import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.TimeZone;
 
 public class Main {
@@ -37,8 +39,15 @@ public class Main {
 
         tx.begin();
         try {
-            Utilisateur grimpeur1 = creationUtilisateur("fa", "auxietre");
-            entityManager.persist(grimpeur1);
+            Utilisateur grimpeur1 = creationUtilisateur("auxietre", "francois", 1972, 9, 18);
+            Utilisateur grimpeur2 = creationUtilisateur("weyl", "adrien", 1998, 1, 18);
+
+
+            if (grimpeur1 != null && grimpeur2 != null) {
+                entityManager.persist(grimpeur1);
+                entityManager.persist(grimpeur2);
+                listerUtilisateur(entityManager, logger);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -48,17 +57,34 @@ public class Main {
 
     }
 
-    public static Utilisateur creationUtilisateur(String nom, String prenom) {
-        Utilisateur grimpeur1 = new Utilisateur();
-        grimpeur1.setPrenom("fa");
-        grimpeur1.setNom("auxietre");
+    public static Utilisateur creationUtilisateur(String nom, String prenom, int annee, int mois, int jour) {
+        Utilisateur grimpeur = new Utilisateur();
+        grimpeur.setPrenom(prenom);
+        grimpeur.setNom(nom);
         //pattern builder
-        LocalDate date = LocalDate.of(1972, Month.SEPTEMBER, 18);
-
+        LocalDate date = LocalDate.of(annee, mois, jour);
         Date naissance = Date.valueOf(date);
+        grimpeur.setDate_de_naissance(naissance);
+        return grimpeur;
+    }
 
+    //demande a olivier si existe un pattern ou un moeyn plus approprie
 
-        grimpeur1.setDate_de_naissance(naissance);
-        return grimpeur1;
+    /**
+     * methode qui donne la liste des utilisateur de la base hsql
+     *
+     * @param entityManager
+     * @param logger
+     * @return la liste des grimpeurs
+     */
+    public static List<Utilisateur> listerUtilisateur(EntityManager entityManager, Logger logger) {
+        List<Utilisateur> liste = entityManager.createNativeQuery("select * from UTILISATEUR", Utilisateur.class)
+                .getResultList();
+        logger.info("nombre d'utilisateur:" + liste.size());
+        for (Utilisateur utilisateur : liste) {
+            //System.out.println("grimpeur: " + utilisateur);
+            logger.info(utilisateur.toString());
+        }
+        return liste;
     }
 }
